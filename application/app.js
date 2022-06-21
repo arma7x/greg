@@ -140,14 +140,14 @@ let event_check = function (date) {
       let a = new Date(events[t].dateStart).getTime();
       let b = new Date(events[t].dateEnd).getTime();
       let c = new Date(date).getTime();
+      let d = events[t].rrule_;
 
       if (a === c) {
         feedback.event = true;
         return feedback;
       }
 
-      // multi day event
-      if (events[t]["rrule_"] == "none") {
+      if (d === "none" || d === "" || d === undefined || d === "DAILY") {
         if (a === c || b === c || (a < c && b > c)) {
           feedback.event = true;
           if (events[t].isSubscription === true) {
@@ -157,11 +157,11 @@ let event_check = function (date) {
           if (events[t].multidayevent === true) {
             feedback.multidayevent = true;
           }
-          /*
+
           if (events[t].time_end == "00:00:00" && events[t].dateEnd == date) {
             feedback.subscription = false;
             feedback.event = false;
-          }*/
+          }
 
           t = events.length;
           return feedback;
@@ -193,6 +193,7 @@ let rrule_check = function (date) {
       let a = new Date(events[t].dateStart).getTime();
       let b = new Date(events[t].dateEnd).getTime();
       let c = new Date(date).getTime();
+      let d = events[t].rrule_;
 
       //recurrences
 
@@ -201,8 +202,8 @@ let rrule_check = function (date) {
         events[t]["rrule_"] !== undefined
       ) {
         if (a === c || b === c || (a < c && b > c)) {
-          console.log(events[t]["RRULE"]);
-          return false;
+          console.log(events[t]["rrule_"]);
+          //return false;
           if (events[t].rrule_ == "MONTHLY") {
             if (
               new Date(events[t].dateStart).getDate() ===
@@ -211,6 +212,7 @@ let rrule_check = function (date) {
               feedback.event = true;
               feedback.rrule = true;
               t = events.length;
+              return false;
             }
           }
 
@@ -218,6 +220,7 @@ let rrule_check = function (date) {
             feedback.rrule = true;
             feedback.event = true;
             t = events.length;
+            return false;
           }
 
           if (events[t].rrule_ == "WEEKLY") {
@@ -225,7 +228,10 @@ let rrule_check = function (date) {
               new Date(events[t].dateStart).getDay() === new Date(date).getDay()
             ) {
               feedback.rrule = true;
+              feedback.event = true;
               t = events.length;
+
+              return false;
             }
           }
 
@@ -241,6 +247,7 @@ let rrule_check = function (date) {
               feedback.rrule = true;
               feedback.event = true;
               t = events.length;
+              return false;
             }
           }
         }
@@ -321,37 +328,30 @@ let event_slider = function (date) {
     }
     */
 
-    if (a === c || b === c || (a < c && b > c)) {
-      slider.push(events[i]);
-      k.insertAdjacentHTML("beforeend", "<div class='indicator'></div>");
-    }
-    /*
-    if (d === "none" || d === "") {
+    if (d === "none" || d === "" || d === undefined) {
       if (a === c || b === c || (a < c && b > c)) {
         //if multiday event
         //the end date is next day
         //time is 00:00:00
         if (events[i].time_end == "00:00:00" && events[i].dateEnd == date) {
-          // return false;
+          return false;
         }
         slider.push(events[i]);
-
         k.insertAdjacentHTML("beforeend", "<div class='indicator'></div>");
       }
     } else {
-      if (a === c || b === c || (a < c && b > c && d)) {
+      if (a === c || b === c || (a < c && b > c)) {
         //recurrences
         //YEAR
         if (d == "YEARLY") {
-          let tt = new Date(item[i].getAttribute("data-date"));
+          let tt = new Date(events[i].getAttribute("data-date"));
           let pp = new Date(date);
 
           if (
             tt.getDate() + "-" + tt.getMonth() ===
             pp.getDate() + "-" + pp.getMonth()
           ) {
-            slider.push(item[i]);
-
+            slider.push(events[i]);
             k.insertAdjacentHTML("beforeend", "<div class='indicator'></div>");
           }
         }
@@ -359,10 +359,9 @@ let event_slider = function (date) {
         //WEEK
         if (d == "WEEKLY") {
           if (
-            new Date(item[i].item.dateStart).getDay() == new Date(date).getDay()
+            new Date(events[i].dateStart).getDay() == new Date(date).getDay()
           ) {
-            slider.push(item[i]);
-
+            slider.push(events[i]);
             k.insertAdjacentHTML("beforeend", "<div class='indicator'></div>");
           }
         }
@@ -374,22 +373,19 @@ let event_slider = function (date) {
             new Date(item[i].item.dateStart).getDate() ==
             new Date(date).getDate()
           ) {
-            slider.push(item[i]);
-
+            slider.push(events[i]);
             k.insertAdjacentHTML("beforeend", "<div class='indicator'></div>");
           }
         }
 
         if (d == "DAILY") {
           if (a === c || b === c || (a < c && b > c)) {
-            slider.push(item[i]);
-
+            slider.push(events[i]);
             k.insertAdjacentHTML("beforeend", "<div class='indicator'></div>");
           }
         }
       }
     }
-    */
   }
 
   if (slider != "") {

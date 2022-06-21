@@ -142,7 +142,7 @@
       this[globalName] = mainExports;
     }
   }
-})({"il488":[function(require,module,exports) {
+})({"k1xWN":[function(require,module,exports) {
 "use strict";
 var HMR_HOST = null;
 var HMR_PORT = null;
@@ -612,23 +612,31 @@ getManifest(manifest);
 // finde closest event to selected date in list view
 // ////////
 let find_closest_date = function(search_term) {
-    let t1 = 0;
-    let search = new Date(search_term).getTime();
+    let search = new Date(status.selected_day).getTime();
+    //equal
     for(let i = 0; i < events.length; i++){
         let item = new Date(events[i].dateStart).getTime();
-        if (search < item) {
-            t1 = events[i - 1].dateStart;
-            i = events.length;
-        }
-        //after last event
-        //focus last event
-        if (search > new Date(events[events.length - 1].dateStart).getTime()) {
-            t1 = events[events.length - 1].dateStart;
+        //console.log(search + " " + item);
+        if (search == item) {
+            t = events[i].dateStart;
             i = events.length;
         }
     }
-    document.querySelectorAll("article[data-date='" + t1 + "']")[0].focus();
-    return t1;
+    //between
+    if (t == 0) {
+        for(let i = 0; i < events.length - 1; i++)if (search > new Date(events[i].dateStart).getTime()) {
+            t = events[i].dateStart;
+            i = events.length;
+            console.log("result" + t);
+        }
+    }
+    //default
+    if (t == 0) {
+        console.log("no match");
+        t = events[0].dateStart;
+    }
+    document.querySelectorAll("article[data-date='" + t + "']")[0].focus();
+    return t;
 };
 // check if has event
 let event_check = function(date) {
@@ -639,29 +647,29 @@ let event_check = function(date) {
         multidayevent: false,
         rrule: "none"
     };
-    for(let t2 = 0; t2 < events.length; t2++)if (typeof events[t2] === "object") {
+    for(let t1 = 0; t1 < events.length; t1++)if (typeof events[t1] === "object") {
         feedback.event = false;
         feedback.subscription = false;
         feedback.multidayevent = false;
         feedback.rrule = false;
-        let a = new Date(events[t2].dateStart).getTime();
-        let b = new Date(events[t2].dateEnd).getTime();
+        let a = new Date(events[t1].dateStart).getTime();
+        let b = new Date(events[t1].dateEnd).getTime();
         let c = new Date(date).getTime();
+        let d1 = events[t1].rrule_;
         if (a === c) {
             feedback.event = true;
             return feedback;
         }
-        // multi day event
-        if (events[t2]["rrule_"] == "none") {
+        if (d1 === "none" || d1 === "" || d1 === undefined || d1 === "DAILY") {
             if (a === c || b === c || a < c && b > c) {
                 feedback.event = true;
-                if (events[t2].isSubscription === true) feedback.subscription = true;
-                if (events[t2].multidayevent === true) feedback.multidayevent = true;
-                /*
-          if (events[t].time_end == "00:00:00" && events[t].dateEnd == date) {
-            feedback.subscription = false;
-            feedback.event = false;
-          }*/ t2 = events.length;
+                if (events[t1].isSubscription === true) feedback.subscription = true;
+                if (events[t1].multidayevent === true) feedback.multidayevent = true;
+                if (events[t1].time_end == "00:00:00" && events[t1].dateEnd == date) {
+                    feedback.subscription = false;
+                    feedback.event = false;
+                }
+                t1 = events.length;
                 return feedback;
             }
         }
@@ -677,46 +685,52 @@ let rrule_check = function(date) {
         multidayevent: false,
         rrule: "none"
     };
-    for(let t3 = 0; t3 < events.length; t3++)//console.log(events[t])
-    if (typeof events[t3] === "object") {
+    for(let t2 = 0; t2 < events.length; t2++)if (typeof events[t2] === "object") {
         feedback.event = false;
         feedback.subscription = false;
         feedback.multidayevent = false;
         feedback.rrule = false;
         feedback.date = date;
-        let a = new Date(events[t3].dateStart).getTime();
-        let b = new Date(events[t3].dateEnd).getTime();
+        let a = new Date(events[t2].dateStart).getTime();
+        let b = new Date(events[t2].dateEnd).getTime();
         let c = new Date(date).getTime();
+        let d = events[t2].rrule_;
         //recurrences
-        if (typeof events[t3]["rrule_"] !== "undefined" && events[t3]["rrule_"] !== undefined) {
+        if (typeof events[t2]["rrule_"] !== "undefined" && events[t2]["rrule_"] !== undefined) {
             if (a === c || b === c || a < c && b > c) {
-                console.log(events[t3]["RRULE"]);
-                if (events[t3].rrule_ == "MONTHLY") {
-                    if (new Date(events[t3].dateStart).getDate() === new Date(date).getDate()) {
+                console.log(events[t2]["rrule_"]);
+                //return false;
+                if (events[t2].rrule_ == "MONTHLY") {
+                    if (new Date(events[t2].dateStart).getDate() === new Date(date).getDate()) {
                         feedback.event = true;
                         feedback.rrule = true;
-                        t3 = events.length;
+                        t2 = events.length;
+                        return false;
                     }
                 }
-                if (events[t3]["rrule_"] == "DAILY") {
+                if (events[t2]["rrule_"] == "DAILY") {
                     feedback.rrule = true;
                     feedback.event = true;
-                    t3 = events.length;
+                    t2 = events.length;
+                    return false;
                 }
-                if (events[t3].rrule_ == "WEEKLY") {
-                    if (new Date(events[t3].dateStart).getDay() === new Date(date).getDay()) {
+                if (events[t2].rrule_ == "WEEKLY") {
+                    if (new Date(events[t2].dateStart).getDay() === new Date(date).getDay()) {
                         feedback.rrule = true;
-                        t3 = events.length;
+                        feedback.event = true;
+                        t2 = events.length;
+                        return false;
                     }
                 }
-                if (events[t3].rrule_ == "YEARLY") {
+                if (events[t2].rrule_ == "YEARLY") {
                     console.log("yearly");
-                    let tt = new Date(events[t3].dateStart);
+                    let tt = new Date(events[t2].dateStart);
                     let pp = new Date(date);
                     if (tt.getDate() + "-" + tt.getMonth() === pp.getDate() + "-" + pp.getMonth()) {
                         feedback.rrule = true;
                         feedback.event = true;
-                        t3 = events.length;
+                        t2 = events.length;
+                        return false;
                     }
                 }
             }
@@ -747,13 +761,13 @@ let slider_navigation = function() {
 let event_slider = function(date) {
     slider = [];
     let k = document.querySelector("div#event-slider-indicator div");
-    k.innerHTML = "";
+    if (k.innerHTML != "") k.innerHTML = "";
     document.querySelector("div#event-slider").innerHTML = "";
     for(let i = 0; i < events.length; i++){
         let a = new Date(events[i].dateStart).getTime();
         let b = new Date(events[i].dateEnd).getTime();
         let c = new Date(date).getTime();
-        let d = events[i].rrule_;
+        let d2 = events[i].rrule_;
         events[i].alarm;
         //all day event
         /*
@@ -765,75 +779,48 @@ let event_slider = function(date) {
         slider.push(events[i]);
       }
     }
-    */ if (a === c || b === c || a < c && b > c) {
-            slider.push(events[i]);
-            k.insertAdjacentHTML("beforeend", "<div class='indicator'></div>");
+    */ if (d2 === "none" || d2 === "" || d2 === undefined) {
+            if (a === c || b === c || a < c && b > c) {
+                //if multiday event
+                //the end date is next day
+                //time is 00:00:00
+                if (events[i].time_end == "00:00:00" && events[i].dateEnd == date) return false;
+                slider.push(events[i]);
+                k.insertAdjacentHTML("beforeend", "<div class='indicator'></div>");
+            }
+        } else if (a === c || b === c || a < c && b > c) {
+            //recurrences
+            //YEAR
+            if (d2 == "YEARLY") {
+                let tt = new Date(events[i].getAttribute("data-date"));
+                let pp = new Date(date);
+                if (tt.getDate() + "-" + tt.getMonth() === pp.getDate() + "-" + pp.getMonth()) {
+                    slider.push(events[i]);
+                    k.insertAdjacentHTML("beforeend", "<div class='indicator'></div>");
+                }
+            }
+            //WEEK
+            if (d2 == "WEEKLY") {
+                if (new Date(events[i].dateStart).getDay() == new Date(date).getDay()) {
+                    slider.push(events[i]);
+                    k.insertAdjacentHTML("beforeend", "<div class='indicator'></div>");
+                }
+            }
+            //MONTH
+            if (d2 == "MONTHLY") {
+                if (new Date(item[i].item.dateStart).getDate() == new Date(date).getDate()) {
+                    slider.push(events[i]);
+                    k.insertAdjacentHTML("beforeend", "<div class='indicator'></div>");
+                }
+            }
+            if (d2 == "DAILY") {
+                if (a === c || b === c || a < c && b > c) {
+                    slider.push(events[i]);
+                    k.insertAdjacentHTML("beforeend", "<div class='indicator'></div>");
+                }
+            }
         }
-    /*
-    if (d === "none" || d === "") {
-      if (a === c || b === c || (a < c && b > c)) {
-        //if multiday event
-        //the end date is next day
-        //time is 00:00:00
-        if (events[i].time_end == "00:00:00" && events[i].dateEnd == date) {
-          // return false;
-        }
-        slider.push(events[i]);
-
-        k.insertAdjacentHTML("beforeend", "<div class='indicator'></div>");
-      }
-    } else {
-      if (a === c || b === c || (a < c && b > c && d)) {
-        //recurrences
-        //YEAR
-        if (d == "YEARLY") {
-          let tt = new Date(item[i].getAttribute("data-date"));
-          let pp = new Date(date);
-
-          if (
-            tt.getDate() + "-" + tt.getMonth() ===
-            pp.getDate() + "-" + pp.getMonth()
-          ) {
-            slider.push(item[i]);
-
-            k.insertAdjacentHTML("beforeend", "<div class='indicator'></div>");
-          }
-        }
-
-        //WEEK
-        if (d == "WEEKLY") {
-          if (
-            new Date(item[i].item.dateStart).getDay() == new Date(date).getDay()
-          ) {
-            slider.push(item[i]);
-
-            k.insertAdjacentHTML("beforeend", "<div class='indicator'></div>");
-          }
-        }
-
-        //MONTH
-
-        if (d == "MONTHLY") {
-          if (
-            new Date(item[i].item.dateStart).getDate() ==
-            new Date(date).getDate()
-          ) {
-            slider.push(item[i]);
-
-            k.insertAdjacentHTML("beforeend", "<div class='indicator'></div>");
-          }
-        }
-
-        if (d == "DAILY") {
-          if (a === c || b === c || (a < c && b > c)) {
-            slider.push(item[i]);
-
-            k.insertAdjacentHTML("beforeend", "<div class='indicator'></div>");
-          }
-        }
-      }
     }
-    */ }
     if (slider != "") {
         slider.forEach(function(item) {
             document.querySelector("div#event-slider").insertAdjacentHTML("beforeend", "<article>" + item.SUMMARY + "</article>");
@@ -924,10 +911,8 @@ let showCalendar = function(month, year) {
                 cell.setAttribute("data-index", new Date(p).toISOString());
                 // check if has event
                 if (events.length > 0) {
-                    console.log(event_check(p).event);
                     if (event_check(p).event == true) cell.classList.add("event");
                     if (rrule_check(p).rrule) cell.classList.add("event");
-                    event_check(p).subscription;
                 }
                 cell.classList.add("item");
                 row.appendChild(cell);
@@ -1011,9 +996,9 @@ var page_calendar = {
             if (document.activeElement.hasAttribute("data-date")) status.selected_day = document.activeElement.getAttribute("data-date");
             _helperJs.bottom_bar("add", "events", "options");
             if (status.selected_day != "") {
-                let t4 = new Date(status.selected_day);
-                currentMonth = t4.getMonth();
-                currentYear = t4.getFullYear();
+                let t3 = new Date(status.selected_day);
+                currentMonth = t3.getMonth();
+                currentYear = t3.getFullYear();
             }
             let k = status.selected_day;
             document.querySelectorAll("div#calendar-body div.item").forEach(function(item) {
@@ -1025,9 +1010,9 @@ var page_calendar = {
             showCalendar(currentMonth, currentYear);
             if (document.activeElement.hasAttribute("data-date")) status.selected_day = document.activeElement.getAttribute("data-date");
             _helperJs.bottom_bar("add", "events", "options");
-            let t5 = new Date(status.selected_day);
-            currentMonth = t5.getMonth();
-            currentYear = t5.getFullYear();
+            let t4 = new Date(status.selected_day);
+            currentMonth = t4.getMonth();
+            currentYear = t4.getFullYear();
             showCalendar(currentMonth, currentYear);
             document.querySelectorAll("div#calendar-body div.item").forEach(function(item) {
                 if (item.getAttribute("data-date") == k) {
@@ -1036,7 +1021,7 @@ var page_calendar = {
                 }
             });
             clear_form();
-            document.querySelectorAll("div#event-slider").style.opacity = "100";
+        //document.querySelectorAll("div#event-slider").style.opacity = "100";
         }, 500)
 };
 var page_events = {
@@ -1044,8 +1029,7 @@ var page_events = {
         return _mithrilDefault.default("div", {
             id: "events-wrapper",
             oncreate: ()=>setTimeout(function() {
-                    _helperJs.sort_array(events, "dateStart", "date");
-                    find_closest_date(status.selected_day);
+                    find_closest_date();
                     _helperJs.bottom_bar("edit", "calendar", "");
                 }, 1500)
         }, [
@@ -1386,7 +1370,10 @@ var page_add_event = {
                     for: "notification"
                 }, "Notification"),
                 _mithrilDefault.default("select", {
-                    id: "event-notification-time"
+                    id: "event-notification-time",
+                    oncreate: function() {
+                        document.getElementById("event-notification-time").value = settings.default_notification;
+                    }
                 }, [
                     _mithrilDefault.default("option", {
                         value: "none"
@@ -1684,7 +1671,6 @@ let load_subscriptions = function() {
     if (document.activeElement.hasAttribute("data-date")) status.selected_day = document.activeElement.getAttribute("data-date");
 };
 let callback_scan = function(url) {
-    _helperJs.bottom_bar("QR", "", "save");
     document.querySelector("div#subscription-form input#cal-subs-url").value = url;
 };
 let store_subscription = function() {
@@ -1722,6 +1708,7 @@ let delete_subscription = function() {
 };
 _localforageDefault.default.getItem("events").then(function(value) {
     if (value != null) events = value;
+    _helperJs.sort_array(events, "dateStart", "date");
 }).catch(function(err) {});
 _localforageDefault.default.getItem("subscriptions").then(function(value) {
     subscriptions = value;
@@ -1802,6 +1789,7 @@ let nav = function(move) {
             status.selected_day = targetElement.getAttribute("data-date");
             status.selected_day_id = targetElement.getAttribute("data-id");
             event_slider(status.selected_day);
+            console.log(status.selected_day);
         }
     }
 };
@@ -1856,8 +1844,8 @@ let remove_alarm = function(id) {
 // STORE EVENTS//
 // /////////////
 // /////////////
-let convert_ics_date = function(t6) {
-    let nn = t6.replace(/-/g, "");
+let convert_ics_date = function(t5) {
+    let nn = t5.replace(/-/g, "");
     nn = nn.replace(/:/g, "");
     nn = nn.replace(" ", "T");
     nn = nn + "00";
@@ -1928,6 +1916,7 @@ let store_event = function() {
         _helperJs.side_toaster("<img src='assets/image/E25C.svg'", 2000);
         setTimeout(function() {
             _mithrilDefault.default.route.set("/page_calendar");
+            _helperJs.sort_array(events, "dateStart", "date");
         }, 200);
     }).catch(function(err) {
         console.log(err);
@@ -2035,20 +2024,20 @@ let import_event_callback = function(id, date) {
     }).catch(function(err) {});
 };
 let set_datetime_form = function() {
-    let d1 = new Date();
-    let d_h = `0${d1.getHours()}`.slice(-2);
-    let d_m = `0${d1.getMinutes()}`.slice(-2);
+    let d3 = new Date();
+    let d_h = `0${d3.getHours()}`.slice(-2);
+    let d_m = `0${d3.getMinutes()}`.slice(-2);
     let p = d_h + ":" + d_m;
-    let d_h_ = `0${d1.getHours() + 1}`.slice(-2);
-    let d_m_ = `0${d1.getMinutes()}`.slice(-2);
+    let d_h_ = `0${d3.getHours() + 1}`.slice(-2);
+    let d_m_ = `0${d3.getMinutes()}`.slice(-2);
     if (d_h_ > 23) d_h_ = "23";
     let pp = d_h_ + ":" + d_m_;
     document.getElementById("event-time-start").value = p;
     document.getElementById("event-time-end").value = pp;
 };
 let pick_image_callback = function(resultBlob) {
-    let t7 = document.getElementById("form-image");
-    t7.src = URL.createObjectURL(resultBlob);
+    let t6 = document.getElementById("form-image");
+    t6.src = URL.createObjectURL(resultBlob);
     document.getElementById("form-image-wrapper").classList.add("item");
     document.querySelectorAll("div#add-edit-event .item").forEach(function(i, p) {
         i.setAttribute("tabindex", p);
@@ -2203,7 +2192,6 @@ function shortpress_action(param) {
                 blob = "";
                 return true;
             }
-            if (document.activeElement.hasAttribute("data-date")) status.selected_day = document.activeElement.getAttribute("data-date");
             //toggle month/events
             if (_mithrilDefault.default.route.get() == "/page_calendar" || _mithrilDefault.default.route.get() == "/page_events") _mithrilDefault.default.route.get() == "/page_calendar" ? _mithrilDefault.default.route.set("/page_events") : _mithrilDefault.default.route.set("/page_calendar");
             break;
@@ -2250,7 +2238,7 @@ document.addEventListener("keydown", handleKeyDown);
 document.addEventListener("keyup", handleKeyUp);
 document.addEventListener("visibilitychange", handleVisibilityChange, false);
 
-},{"localforage":"8ZRFG","./assets/js/helper.js":"db1Xp","./assets/js/getMoonPhase.js":"kaybj","./assets/js/eximport.js":"4kH1V","./assets/js/scan.js":"6auJa","mithril":"05eVJ","@parcel/transformer-js/src/esmodule-helpers.js":"cj2YQ"}],"8ZRFG":[function(require,module,exports) {
+},{"localforage":"8ZRFG","./assets/js/helper.js":"db1Xp","./assets/js/getMoonPhase.js":"kaybj","./assets/js/eximport.js":"4kH1V","./assets/js/scan.js":"6auJa","mithril":"05eVJ","@parcel/transformer-js/src/esmodule-helpers.js":"4z6iA"}],"8ZRFG":[function(require,module,exports) {
 var global = arguments[3];
 /*!
     localForage -- Offline Storage, Improved
@@ -4491,7 +4479,7 @@ parcelHelpers.export(exports, "list_files", ()=>list_files
 let sort_array = function(arr, item_key, type) {
     if (type == "date") arr.sort((a, b)=>{
         let da = new Date(a[item_key]), db = new Date(b[item_key]);
-        return da - db;
+        return db - da;
     });
     //sort by number
     if (type == "number") arr.sort((a, b)=>{
@@ -4792,7 +4780,7 @@ function write_file(data, filename) {
     };
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"cj2YQ"}],"cj2YQ":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"4z6iA"}],"4z6iA":[function(require,module,exports) {
 exports.interopDefault = function(a) {
     return a && a.__esModule ? a : {
         default: a
@@ -4858,7 +4846,7 @@ function getMoonPhase(year, month, day) {
     return b;
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"cj2YQ"}],"4kH1V":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"4z6iA"}],"4kH1V":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "export_ical", ()=>export_ical
@@ -5060,7 +5048,7 @@ function loadICS(filename, callback) {
     };
 }
 
-},{"./helper.js":"db1Xp","../../app.js":"20BJq","ical":"3FyRN","@parcel/transformer-js/src/esmodule-helpers.js":"cj2YQ"}],"3FyRN":[function(require,module,exports) {
+},{"./helper.js":"db1Xp","../../app.js":"20BJq","ical":"3FyRN","@parcel/transformer-js/src/esmodule-helpers.js":"4z6iA"}],"3FyRN":[function(require,module,exports) {
 module.exports = require('./ical');
 var node = require('./node-ical');
 // Copy node functions across to exports
@@ -5407,7 +5395,7 @@ ical.objectHandlers['END'] = function(val, params, curr, stack) {
     return originalEnd.call(this, val, params, curr, stack);
 };
 
-},{"./ical":"he2bB","fs":"jgbrw","rrule":"idCmx"}],"jgbrw":[function(require,module,exports) {
+},{"./ical":"he2bB","fs":"6DQzB","rrule":"idCmx"}],"6DQzB":[function(require,module,exports) {
 "use strict";
 
 },{}],"idCmx":[function(require,module,exports) {
@@ -5455,7 +5443,7 @@ var rrulestr = function() {
 };
 exports.default = _rruleDefault.default;
 
-},{"./rrule":"fQtN4","./rruleset":"1v7S8","./rrulestr":"ai34i","./types":"9biul","./weekday":"2Q77D","@parcel/transformer-js/src/esmodule-helpers.js":"cj2YQ"}],"fQtN4":[function(require,module,exports) {
+},{"./rrule":"fQtN4","./rruleset":"1v7S8","./rrulestr":"ai34i","./types":"9biul","./weekday":"2Q77D","@parcel/transformer-js/src/esmodule-helpers.js":"4z6iA"}],"fQtN4":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Days", ()=>Days
@@ -5820,7 +5808,7 @@ function isFiltered(bymonth, ii, currentDay, byweekno, byweekday, byeaster, bymo
     return _helpers.notEmpty(bymonth) && !_helpers.includes(bymonth, ii.mmask[currentDay]) || _helpers.notEmpty(byweekno) && !ii.wnomask[currentDay] || _helpers.notEmpty(byweekday) && !_helpers.includes(byweekday, ii.wdaymask[currentDay]) || _helpers.notEmpty(ii.nwdaymask) && !ii.nwdaymask[currentDay] || byeaster !== null && !_helpers.includes(ii.eastermask, currentDay) || (_helpers.notEmpty(bymonthday) || _helpers.notEmpty(bynmonthday)) && !_helpers.includes(bymonthday, ii.mdaymask[currentDay]) && !_helpers.includes(bynmonthday, ii.nmdaymask[currentDay]) || _helpers.notEmpty(byyearday) && (currentDay < ii.yearlen && !_helpers.includes(byyearday, currentDay + 1) && !_helpers.includes(byyearday, -ii.yearlen + currentDay) || currentDay >= ii.yearlen && !_helpers.includes(byyearday, currentDay + 1 - ii.yearlen) && !_helpers.includes(byyearday, -ii.nextyearlen + currentDay - ii.yearlen));
 }
 
-},{"./dateutil":"gS1CZ","./iterinfo":"bSntn","./helpers":"9UCZ2","./iterresult":"iQsEc","./callbackiterresult":"llph6","./types":"9biul","./parseoptions":"hWO1x","./parsestring":"l6q9L","./optionstostring":"3Gs9h","./cache":"9fAk1","./weekday":"2Q77D","luxon":"kmRFS","./nlp":"jkQ8q","@parcel/transformer-js/src/esmodule-helpers.js":"cj2YQ"}],"gS1CZ":[function(require,module,exports) {
+},{"./dateutil":"gS1CZ","./iterinfo":"bSntn","./helpers":"9UCZ2","./iterresult":"iQsEc","./callbackiterresult":"llph6","./types":"9biul","./parseoptions":"hWO1x","./parsestring":"l6q9L","./optionstostring":"3Gs9h","./cache":"9fAk1","./weekday":"2Q77D","luxon":"kmRFS","./nlp":"jkQ8q","@parcel/transformer-js/src/esmodule-helpers.js":"4z6iA"}],"gS1CZ":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "dateutil", ()=>dateutil
@@ -6121,7 +6109,7 @@ var dateutil;
 })(dateutil || (dateutil = {}));
 exports.default = dateutil;
 
-},{"./helpers":"9UCZ2","@parcel/transformer-js/src/esmodule-helpers.js":"cj2YQ"}],"9UCZ2":[function(require,module,exports) {
+},{"./helpers":"9UCZ2","@parcel/transformer-js/src/esmodule-helpers.js":"4z6iA"}],"9UCZ2":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "isPresent", ()=>isPresent
@@ -6221,7 +6209,7 @@ var includes = function(arr, val) {
     return notEmpty(arr) && arr.indexOf(val) !== -1;
 };
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"cj2YQ"}],"bSntn":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"4z6iA"}],"bSntn":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _masks = require("./masks");
@@ -6483,7 +6471,7 @@ var Iterinfo = /** @class */ function() {
 }();
 exports.default = Iterinfo;
 
-},{"./masks":"2cuda","./rrule":"fQtN4","./dateutil":"gS1CZ","./helpers":"9UCZ2","@parcel/transformer-js/src/esmodule-helpers.js":"cj2YQ"}],"2cuda":[function(require,module,exports) {
+},{"./masks":"2cuda","./rrule":"fQtN4","./dateutil":"gS1CZ","./helpers":"9UCZ2","@parcel/transformer-js/src/esmodule-helpers.js":"4z6iA"}],"2cuda":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "WDAYMASK", ()=>WDAYMASK
@@ -6559,7 +6547,7 @@ var WDAYMASK = function() {
     return wdaymask;
 }();
 
-},{"./helpers":"9UCZ2","@parcel/transformer-js/src/esmodule-helpers.js":"cj2YQ"}],"iQsEc":[function(require,module,exports) {
+},{"./helpers":"9UCZ2","@parcel/transformer-js/src/esmodule-helpers.js":"4z6iA"}],"iQsEc":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 /**
@@ -6631,7 +6619,7 @@ parcelHelpers.defineInteropFlag(exports);
 }();
 exports.default = IterResult;
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"cj2YQ"}],"llph6":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"4z6iA"}],"llph6":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _iterresult = require("./iterresult");
@@ -6676,7 +6664,7 @@ var __extends = undefined && undefined.__extends || function() {
 }(_iterresultDefault.default);
 exports.default = CallbackIterResult;
 
-},{"./iterresult":"iQsEc","@parcel/transformer-js/src/esmodule-helpers.js":"cj2YQ"}],"9biul":[function(require,module,exports) {
+},{"./iterresult":"iQsEc","@parcel/transformer-js/src/esmodule-helpers.js":"4z6iA"}],"9biul":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Frequency", ()=>Frequency
@@ -6692,7 +6680,7 @@ var Frequency;
     Frequency1[Frequency1["SECONDLY"] = 6] = "SECONDLY";
 })(Frequency || (Frequency = {}));
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"cj2YQ"}],"hWO1x":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"4z6iA"}],"hWO1x":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "initializeOptions", ()=>initializeOptions
@@ -6878,7 +6866,7 @@ function parseOptions(options) {
     };
 }
 
-},{"./helpers":"9UCZ2","./rrule":"fQtN4","./dateutil":"gS1CZ","./weekday":"2Q77D","@parcel/transformer-js/src/esmodule-helpers.js":"cj2YQ"}],"2Q77D":[function(require,module,exports) {
+},{"./helpers":"9UCZ2","./rrule":"fQtN4","./dateutil":"gS1CZ","./weekday":"2Q77D","@parcel/transformer-js/src/esmodule-helpers.js":"4z6iA"}],"2Q77D":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Weekday", ()=>Weekday
@@ -6922,7 +6910,7 @@ var Weekday = /** @class */ function() {
     return Weekday1;
 }();
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"cj2YQ"}],"l6q9L":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"4z6iA"}],"l6q9L":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "parseString", ()=>parseString
@@ -7016,7 +7004,7 @@ function parseString(rfcString) {
     return options;
 }
 
-},{"./types":"9biul","./weekday":"2Q77D","./dateutil":"gS1CZ","./rrule":"fQtN4","@parcel/transformer-js/src/esmodule-helpers.js":"cj2YQ"}],"3Gs9h":[function(require,module,exports) {
+},{"./types":"9biul","./weekday":"2Q77D","./dateutil":"gS1CZ","./rrule":"fQtN4","@parcel/transformer-js/src/esmodule-helpers.js":"4z6iA"}],"3Gs9h":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "optionsToString", ()=>optionsToString
@@ -7091,7 +7079,7 @@ function optionsToString(options) {
     return strings.join(';');
 }
 
-},{"./rrule":"fQtN4","./helpers":"9UCZ2","./weekday":"2Q77D","./dateutil":"gS1CZ","@parcel/transformer-js/src/esmodule-helpers.js":"cj2YQ"}],"9fAk1":[function(require,module,exports) {
+},{"./rrule":"fQtN4","./helpers":"9UCZ2","./weekday":"2Q77D","./dateutil":"gS1CZ","@parcel/transformer-js/src/esmodule-helpers.js":"4z6iA"}],"9fAk1":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Cache", ()=>Cache
@@ -7161,7 +7149,7 @@ var Cache = /** @class */ function() {
     return Cache1;
 }();
 
-},{"./iterresult":"iQsEc","./dateutil":"gS1CZ","./helpers":"9UCZ2","@parcel/transformer-js/src/esmodule-helpers.js":"cj2YQ"}],"kmRFS":[function(require,module,exports) {
+},{"./iterresult":"iQsEc","./dateutil":"gS1CZ","./helpers":"9UCZ2","@parcel/transformer-js/src/esmodule-helpers.js":"4z6iA"}],"kmRFS":[function(require,module,exports) {
 'use strict';
 Object.defineProperty(exports, '__esModule', {
     value: true
@@ -13480,7 +13468,7 @@ var toText = function(rrule, gettext, language) {
 };
 var isFullyConvertible = _totextDefault.default.isFullyConvertible;
 
-},{"./totext":"fchUC","./parsetext":"908Jq","../index":"idCmx","./i18n":"cRPwz","@parcel/transformer-js/src/esmodule-helpers.js":"cj2YQ"}],"fchUC":[function(require,module,exports) {
+},{"./totext":"fchUC","./parsetext":"908Jq","../index":"idCmx","./i18n":"cRPwz","@parcel/transformer-js/src/esmodule-helpers.js":"4z6iA"}],"fchUC":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _i18N = require("./i18n");
@@ -13760,7 +13748,7 @@ var defaultGetText = function(id) {
 }();
 exports.default = ToText;
 
-},{"./i18n":"cRPwz","../index":"idCmx","../helpers":"9UCZ2","@parcel/transformer-js/src/esmodule-helpers.js":"cj2YQ"}],"cRPwz":[function(require,module,exports) {
+},{"./i18n":"cRPwz","../index":"idCmx","../helpers":"9UCZ2","@parcel/transformer-js/src/esmodule-helpers.js":"4z6iA"}],"cRPwz":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 // =============================================================================
@@ -13837,7 +13825,7 @@ var ENGLISH = {
 };
 exports.default = ENGLISH;
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"cj2YQ"}],"908Jq":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"4z6iA"}],"908Jq":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _i18N = require("./i18n");
@@ -14233,7 +14221,7 @@ function parseText(text, language) {
 }
 exports.default = parseText;
 
-},{"./i18n":"cRPwz","../index":"idCmx","@parcel/transformer-js/src/esmodule-helpers.js":"cj2YQ"}],"1v7S8":[function(require,module,exports) {
+},{"./i18n":"cRPwz","../index":"idCmx","@parcel/transformer-js/src/esmodule-helpers.js":"4z6iA"}],"1v7S8":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _rrule = require("./rrule");
@@ -14407,7 +14395,7 @@ var __extends = undefined && undefined.__extends || function() {
 }(_rruleDefault.default);
 exports.default = RRuleSet;
 
-},{"./rrule":"fQtN4","./dateutil":"gS1CZ","./helpers":"9UCZ2","@parcel/transformer-js/src/esmodule-helpers.js":"cj2YQ"}],"ai34i":[function(require,module,exports) {
+},{"./rrule":"fQtN4","./dateutil":"gS1CZ","./helpers":"9UCZ2","@parcel/transformer-js/src/esmodule-helpers.js":"4z6iA"}],"ai34i":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _rrule = require("./rrule");
@@ -14707,7 +14695,7 @@ var _helpers = require("./helpers");
 }();
 exports.default = RRuleStr;
 
-},{"./rrule":"fQtN4","./rruleset":"1v7S8","./dateutil":"gS1CZ","./weekday":"2Q77D","./helpers":"9UCZ2","@parcel/transformer-js/src/esmodule-helpers.js":"cj2YQ"}],"6auJa":[function(require,module,exports) {
+},{"./rrule":"fQtN4","./rruleset":"1v7S8","./dateutil":"gS1CZ","./weekday":"2Q77D","./helpers":"9UCZ2","@parcel/transformer-js/src/esmodule-helpers.js":"4z6iA"}],"6auJa":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "stop_scan", ()=>stop_scan
@@ -14760,7 +14748,7 @@ let start_scan = function(callback) {
     else console.log("getUserMedia not supported");
 };
 
-},{"jsqr":"04jWG","@parcel/transformer-js/src/esmodule-helpers.js":"cj2YQ"}],"04jWG":[function(require,module,exports) {
+},{"jsqr":"04jWG","@parcel/transformer-js/src/esmodule-helpers.js":"4z6iA"}],"04jWG":[function(require,module,exports) {
 (function webpackUniversalModuleDefinition(root, factory) {
     module.exports = factory();
 })(typeof self !== 'undefined' ? self : this, function() {
@@ -27907,5 +27895,5 @@ module.exports = function(attrs, extras) {
     return result;
 };
 
-},{"./hasOwn":"94qwS"}]},["il488","20BJq"], "20BJq", "parcelRequire8806")
+},{"./hasOwn":"94qwS"}]},["k1xWN","20BJq"], "20BJq", "parcelRequire8806")
 
