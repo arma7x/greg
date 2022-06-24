@@ -6,7 +6,7 @@
   "browserslist": "Firefox <= 48",
   "scripts": {
     "start": "parcel --no-source-maps application/index.html",
-    "build": "parcel build --no-source-maps"
+    "build": "rm -rf dist/* && parcel build --no-source-maps --no-minify application/index.html"
   },
   "repository": {
     "type": "git",
