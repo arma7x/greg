@@ -1856,6 +1856,15 @@ document.addEventListener("keyup", handleKeyUp);
 
 document.addEventListener("visibilitychange", handleVisibilityChange, false);
 
-window.addEventListener("load", function() {
+const testAsyncAwait = () => {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve(1);
+        }, 3000);
+    })
+};
+
+window.addEventListener("load", async function() {
+    console.log(await testAsyncAwait());
     console.dir(DAVClient); // ready
 });
