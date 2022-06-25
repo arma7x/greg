@@ -1865,6 +1865,23 @@ const testAsyncAwait = () => {
 };
 
 window.addEventListener("load", async function() {
-    console.log(await testAsyncAwait());
-    console.dir(DAVClient); // ready
+    // console.log(await testAsyncAwait());
+    const client = new DAVClient({
+      serverUrl: 'https://efss.qloud.my/remote.php/dav/addressbooks/users/ahmadmuhamad101@gmail.com/contacts/',
+      credentials: {
+        username: 'ahmadmuhamad101@gmail.com',
+        password: 'xxxxxxxxxxxx',
+      },
+      authMethod: 'Basic',
+      defaultAccountType: 'carddav',
+    });
+    (async () => {
+      await client.login();
+
+      const addressBooks = await client.fetchAddressBooks();
+
+      const vcards = await client.fetchVCards({
+        addressBook: addressBooks[0],
+      });
+    })();
 });
