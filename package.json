@@ -5,8 +5,8 @@
   "source": "application/index.html",
   "browserslist": "Firefox <= 48",
   "scripts": {
-    "start": "rm -rf dist/* && parcel --no-source-maps application/index.html && cp application/manifest.webapp dist",
-    "build": "rm -rf dist/* && parcel build --no-source-maps application/index.html && cp application/manifest.webapp dist"
+    "start": "rm -rf dist/* && parcel --no-source-maps application/index.html && cp application/manifest.webapp dist && cp -r application/assets/icons dist",
+    "build": "rm -rf dist/* && parcel build --no-source-maps application/index.html && cp application/manifest.webapp dist && cp -r application/assets/icons dist"
   },
   "repository": {
     "type": "git",
