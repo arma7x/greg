@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "<img src=\"/images/logo.svg\" width=\"228\"/>",
   "source": "application/index.html",
-  "browserslist": "Firefox <= 48",
+  "browserslist": [
+    "Firefox <= 48"
+  ],
   "scripts": {
     "start": "rm -rf dist/* && parcel --no-source-maps application/index.html && cp application/manifest.webapp dist && cp -r application/assets/icons dist",
     "build": "rm -rf dist/* && parcel build --no-source-maps --no-optimize application/index.html && cp application/manifest.webapp dist && cp -r application/assets/icons dist"
@@ -22,6 +24,7 @@
   "devDependencies": {
     "@babel/core": "^7.18.5",
     "@babel/plugin-syntax-dynamic-import": "^7.8.3",
+    "@babel/plugin-transform-named-capturing-groups-regex": "^7.17.12",
     "@babel/plugin-transform-runtime": "^7.18.5",
     "@babel/preset-env": "^7.18.2",
     "buffer": "^6.0.3",
